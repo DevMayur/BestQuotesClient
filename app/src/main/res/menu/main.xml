@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_prime"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_menu_crown"
+        android:title="@string/action_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        android:visible="true"/>
+
+    <item
+        android:id="@+id/action_search"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_menu_search"
+        android:title="@string/action_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        android:visible="true"/>
+
+</menu>

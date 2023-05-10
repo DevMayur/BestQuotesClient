@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#7113EB</color>
+    <color name="colorPrimaryDark">#FFFFFF</color>
+    <color name="colorAccent">#7113EB</color>
+
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+
+    <color name="card_bg">#000000</color>
+    <color name="bgMain">#ffffff</color>
+
+    <color name="dot1">#F4511E</color>
+    <color name="dot2">#D1022F</color>
+    <color name="dot3">#6700FF</color>
+    <color name="button_color">#FFFFFF</color>
+
+    <color name="quote_back_color">#000000</color>
+    <color name="quote_maker_back_color">#DBD2EA</color>
+
+
+</resources>

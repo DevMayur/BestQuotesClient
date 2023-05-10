@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:id="@+id/menu1" android:checkableBehavior="single">
+        <item android:icon="@drawable/ic_menu_edit" android:id="@+id/nav_maker" android:title="@string/menu_maker"/>
+    </group>
+    <group android:checkableBehavior="single">
+
+        <item android:icon="@drawable/ic_menu_chat" android:id="@+id/nav_today"
+            android:title="Quote of the Day"/>
+
+        <item android:icon="@drawable/ic_menu_heart" android:id="@+id/nav_favotite" android:title="@string/menu_favorite"/>
+        <item android:icon="@drawable/ic_menu_envelope" android:id="@+id/nav_contact" android:title="@string/menu_contact"/>
+        <item android:icon="@drawable/ic_menu_instagram" android:id="@+id/nav_insta" android:title="Instagram"/>
+        <item android:icon="@drawable/ic_menu_info" android:id="@+id/nav_about" android:title="@string/menu_about"/>
+        <item android:icon="@drawable/ic_menu_settings" android:id="@+id/nav_settings" android:title="@string/menu_settings"/>
+        <item android:icon="@drawable/ic_menu_moon_stars" android:id="@+id/nav_night" android:visible="false"
+            android:title="@string/menu_night" app:actionViewClass="androidx.appcompat.widget.SwitchCompat"/>
+        <item android:icon="@drawable/ic_menu_star" android:id="@+id/nav_rate" android:title="@string/menu_rate"/>
+        <item android:icon="@drawable/ic_menu_share" android:id="@+id/nav_share" android:title="@string/menu_share"/>
+    </group>
+</menu>

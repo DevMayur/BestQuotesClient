@@ -1,0 +1,56 @@
+<resources>
+    <string name="app_name">Best Status and Quotes</string>
+
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="your_email">android@gmail.com</string>
+    <string name="email_text">Hello , i Like your app.</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_night">Night Mode</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_about">About us</string>
+    <string name="menu_contact">Contact us</string>
+    <string name="menu_share">Share App</string>
+    <string name="menu_rate">Give Star</string>
+    <string name="menu_favorite">Favorite</string>
+    <string name="menu_maker">Quotes Maker</string>
+    <string name="menu_today">Quotes of the day</string>
+    <string name="upgrade_to_premium">Upgrade to Premium</string>
+    <string name="developers_name">YMG Developers</string>
+    <string name="quote_of_the_day">Quote of the Day</string>
+    <string name="app_description">Premium Quotes app is an android application.Quotes Pro App has user-friendly interface with easy to manage</string>
+    <string name="policy_privacy">Privacy Policy</string>
+    <string name="storage">Quotes Save Location</string>
+    <string name="storagelocation">Internal Storage/</string>
+    <string name="title_notification">Push Notification</string>
+    <string name="label_notification">Want Wallpaper Notifications from </string>
+    <string name="description_subsribte">With our App , You can Enjoy ad free experiance and focus on the essential</string>
+    <string name="version_label">Version</string>
+    <string name="action_search">Search</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="label_cache">Delete and Clear the Caches</string>
+    <string name="msg_cache_cleared">Cache Cleared !</string>
+
+    <string name="privacy_policy_url">https://privacypolicies.com/privacy/view/c51c78f03631c7591d817e9d0c30c84c</string>
+    <string name="play_more_apps">https://play.google.com/store/apps/developer?id=Ymg</string>
+
+
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="applovin_sdk_key">x5ImfykxaMWs-ntpF6fuNGlFBtC9zBJuGcewTMs8kN_h9sVOz9HLQ0abtnmqy4iDgM8Ek_MRML7WCdv123456</string>
+
+    <string name="msg_error_unable_select_profile_pic">Unable to set profile image. Please try again!</string>
+    <string name="lbl_set_profile_photo">Set profile image</string>
+    <string name="lbl_take_camera_picture">Take a picture</string>
+    <string name="lbl_choose_from_gallery">Choose from gallery</string>
+    <string name="toast_image_intent_null">Image picker option is missing!</string>
+    <string name="copy_msg">Quote Copied</string>
+</resources>
