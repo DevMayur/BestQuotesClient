@@ -6,24 +6,26 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.MultiplePermissionsReport;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.yalantis.ucrop.UCrop;
 import com.ymg.beststatusandquotes.R;
 
@@ -49,6 +51,41 @@ public class ImagePickerActivity extends AppCompatActivity {
     private int ASPECT_RATIO_X = 16, ASPECT_RATIO_Y = 9, bitmapMaxWidth = 1000, bitmapMaxHeight = 1000;
     private int IMAGE_COMPRESSION = 80;
     public static String fileName;
+
+    ActivityResultLauncher<Intent> cameraActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    cropImage(getCacheImagePath(fileName));
+                } else {
+                    setResultCancelled();
+                }
+            });
+
+    ActivityResultLauncher<Intent> galleryActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Uri imageUri = result.getData().getData();
+                    cropImage(imageUri);
+                } else {
+                    setResultCancelled();
+                }
+            });
+
+    ActivityResultLauncher<Intent> uCropActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    handleUCropResult(result.getData());
+                } else if (result.getResultCode() == UCrop.RESULT_ERROR) {
+                    final Throwable cropError = UCrop.getError(result.getData());
+                    Log.e(TAG, "Crop error: " + cropError);
+                    setResultCancelled();
+                } else {
+                    setResultCancelled();
+                }
+            });
 
     public interface PickerOptionListener {
         void onTakeCameraSelected();
@@ -107,88 +144,131 @@ public class ImagePickerActivity extends AppCompatActivity {
     }
 
     private void takeCameraImage() {
-        Dexter.withActivity(this)
-                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .withListener(new MultiplePermissionsListener() {
-                    @Override
-                    public void onPermissionsChecked(MultiplePermissionsReport report) {
-                        if (report.areAllPermissionsGranted()) {
-                            fileName = System.currentTimeMillis() + ".jpg";
-                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, getCacheImagePath(fileName));
-                            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                        token.continuePermissionRequest();
-                    }
-                }).check();
+        if (checkPermission()) {
+            fileName = System.currentTimeMillis() + ".jpg";
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, getCacheImagePath(fileName));
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                cameraActivityResultLauncher.launch(takePictureIntent);
+            }
+        } else {
+            requestPermission();
+        }
     }
 
     private void chooseImageFromGallery() {
-        Dexter.withActivity(this)
-                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .withListener(new MultiplePermissionsListener() {
-                    @Override
-                    public void onPermissionsChecked(MultiplePermissionsReport report) {
-                        if (report.areAllPermissionsGranted()) {
-                            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                            startActivityForResult(pickPhoto, REQUEST_GALLERY_IMAGE);
-                        }
-                    }
-
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                        token.continuePermissionRequest();
-                    }
-                }).check();
-
-    }
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case REQUEST_IMAGE_CAPTURE:
-                if (resultCode == RESULT_OK){
-                    cropImage(getCacheImagePath(fileName));
-                } else {
-                    setResultCancelled();
-                }
-                break;
-            case REQUEST_GALLERY_IMAGE:
-                if (resultCode == RESULT_OK){
-                    Uri imageUri = data.getData();
-                    cropImage(imageUri);
-                } else {
-                    setResultCancelled();
-                }
-                break;
-            case UCrop.REQUEST_CROP:
-                if (resultCode == RESULT_OK){
-                    handleUCropResult(data);
-                } else {
-                    setResultCancelled();
-                }
-                break;
-            case UCrop.RESULT_ERROR:
-                final Throwable cropError = UCrop.getError(data);
-                Log.e(TAG, "Crop error: " + cropError);
-                setResultCancelled();
-                break;
-            default:
-                setResultCancelled();
+        if (checkPermission()) {
+            Intent pickPhoto = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            galleryActivityResultLauncher.launch(pickPhoto);
+        } else {
+            Log.d(TAG, "chooseImageFromGallery: " + "requestPermission : " + checkPermission());
+            requestPermission();
         }
     }
+
+
+    private static final int PERMISSION_REQUEST_CODE = 200;
+
+    private boolean checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    PERMISSION_REQUEST_CODE);
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                boolean cameraAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean writeStorageAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                if (cameraAccepted && writeStorageAccepted) {
+                    // you can do your work now
+                } else {
+                    Toast.makeText(this, "Permission Denied, You cannot use local drive and camera. Please grant permissions.", Toast.LENGTH_LONG).show();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                            showMessageOKCancel("You need to allow access to the permissions",
+                                    (dialog, which) -> {
+                                        requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                                PERMISSION_REQUEST_CODE);
+                                    });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(ImagePickerActivity.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+
+
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        Log.d(TAG, "onActivityResult: " + requestCode);
+//        switch (requestCode) {
+//            case REQUEST_IMAGE_CAPTURE:
+//                if (resultCode == RESULT_OK){
+//                    cropImage(getCacheImagePath(fileName));
+//                } else {
+//                    setResultCancelled();
+//                }
+//                break;
+//            case REQUEST_GALLERY_IMAGE:
+//                if (resultCode == RESULT_OK){
+//                    Uri imageUri = data.getData();
+//                    cropImage(imageUri);
+//                } else {
+//                    setResultCancelled();
+//                }
+//                break;
+//            case UCrop.REQUEST_CROP:
+//                if (resultCode == RESULT_OK){
+//                    handleUCropResult(data);
+//                } else {
+//                    setResultCancelled();
+//                }
+//                break;
+//            case UCrop.RESULT_ERROR:
+//                final Throwable cropError = UCrop.getError(data);
+//                Log.e(TAG, "Crop error: " + cropError);
+//                setResultCancelled();
+//                break;
+//            default:
+//                setResultCancelled();
+//        }
+//    }
 
     private void cropImage(Uri sourceUri) {
         Uri destinationUri = Uri.fromFile(new File(getCacheDir(), queryName(getContentResolver(), sourceUri)));
         UCrop.Options options = new UCrop.Options();
         options.setCompressionQuality(IMAGE_COMPRESSION);
+
+        // Set colors for toolbar, status bar and widget (optional)
         options.setToolbarColor(ContextCompat.getColor(this, R.color.colorAccent));
         options.setStatusBarColor(ContextCompat.getColor(this, R.color.colorAccent));
         options.setActiveWidgetColor(ContextCompat.getColor(this, R.color.colorAccent));
@@ -199,10 +279,9 @@ public class ImagePickerActivity extends AppCompatActivity {
         if (setBitmapMaxWidthHeight)
             options.withMaxResultSize(bitmapMaxWidth, bitmapMaxHeight);
 
-        UCrop.of(sourceUri, destinationUri)
-                .withOptions(options)
-                .start(this);
+        uCropActivityResultLauncher.launch(UCrop.of(sourceUri, destinationUri).withOptions(options).getIntent(this));
     }
+
 
     private void handleUCropResult(Intent data) {
         if (data == null) {

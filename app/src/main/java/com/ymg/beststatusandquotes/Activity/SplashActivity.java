@@ -101,19 +101,8 @@ public class SplashActivity extends AppCompatActivity {
                 SplashActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        int lastSync = 0; // Replace with the actual timestamp of the last sync, if available
-                        final ProgressDialog progressDialog = new ProgressDialog(SplashActivity.this);
-                        progressDialog.setMessage("Syncing data...");
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
-                        new Sync().syncData(lastSync, SplashActivity.this, new Sync.SyncCallback() {
-                            @Override
-                            public void onSyncFinished() {
-                                progressDialog.dismiss();
-                                startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                                finish();
-                            }
-                        });
+                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        finish();
                     }
                 });
             }
