@@ -167,7 +167,7 @@ public class ImagePickerActivity extends AppCompatActivity {
     }
 
 
-    private static final int PERMISSION_REQUEST_CODE = 200;
+    public static final int PERMISSION_REQUEST_CODE = 200;
 
     private boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -225,43 +225,6 @@ public class ImagePickerActivity extends AppCompatActivity {
                 .create()
                 .show();
     }
-
-
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        Log.d(TAG, "onActivityResult: " + requestCode);
-//        switch (requestCode) {
-//            case REQUEST_IMAGE_CAPTURE:
-//                if (resultCode == RESULT_OK){
-//                    cropImage(getCacheImagePath(fileName));
-//                } else {
-//                    setResultCancelled();
-//                }
-//                break;
-//            case REQUEST_GALLERY_IMAGE:
-//                if (resultCode == RESULT_OK){
-//                    Uri imageUri = data.getData();
-//                    cropImage(imageUri);
-//                } else {
-//                    setResultCancelled();
-//                }
-//                break;
-//            case UCrop.REQUEST_CROP:
-//                if (resultCode == RESULT_OK){
-//                    handleUCropResult(data);
-//                } else {
-//                    setResultCancelled();
-//                }
-//                break;
-//            case UCrop.RESULT_ERROR:
-//                final Throwable cropError = UCrop.getError(data);
-//                Log.e(TAG, "Crop error: " + cropError);
-//                setResultCancelled();
-//                break;
-//            default:
-//                setResultCancelled();
-//        }
-//    }
 
     private void cropImage(Uri sourceUri) {
         Uri destinationUri = Uri.fromFile(new File(getCacheDir(), queryName(getContentResolver(), sourceUri)));

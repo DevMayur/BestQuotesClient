@@ -411,94 +411,52 @@ public class PhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             //when you press save button
             ((WallpaperViewHolder) holder).ll_quote_save.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick (View v) {
+                public void onClick(View v) {
+                    Bitmap bitmap = Bitmap.createBitmap(((WallpaperViewHolder) holder).relativeLayout.getWidth(), ((WallpaperViewHolder) holder).relativeLayout.getHeight(),
+                            Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(bitmap);
+                    ((WallpaperViewHolder) holder).relativeLayout.draw(canvas);
 
-                    if (ContextCompat.checkSelfPermission(context,
-                            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        ContentResolver resolver = context.getContentResolver();
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
+                        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+                        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+                        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
 
-                        Bitmap bitmap = Bitmap.createBitmap(((WallpaperViewHolder) holder).relativeLayout.getWidth(), ((WallpaperViewHolder) holder).relativeLayout.getHeight(),
-                                Bitmap.Config.ARGB_8888);
-                        Canvas canvas = new Canvas(bitmap);
-                        ((WallpaperViewHolder) holder).relativeLayout.draw(canvas);
-
-                        OutputStream fos;
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            ContentResolver resolver = context.getContentResolver();
-                            ContentValues contentValues = new ContentValues();
-                            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
-                            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
-                            contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
-                            Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-
-                            Toast.makeText(context, "File Saved", Toast.LENGTH_SHORT).show();
-                            ((WallpaperViewHolder) holder).tv_save_quote.setText("Saved");
-                            ((WallpaperViewHolder) holder).iv_save_quote.setImageResource(R.drawable.ic_menu_check);
+                        if (imageUri != null) {
                             try {
-                                fos = resolver.openOutputStream(Objects.requireNonNull(imageUri));
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-
-                                fos.flush();
-                                fos.close();
-
-
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
+                                OutputStream fos = resolver.openOutputStream(imageUri);
+                                if (fos != null) {
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                                    fos.flush();
+                                    fos.close();
+                                    Toast.makeText(context, "File Saved", Toast.LENGTH_SHORT).show();
+                                    ((WallpaperViewHolder) holder).tv_save_quote.setText("Saved");
+                                    ((WallpaperViewHolder) holder).iv_save_quote.setImageResource(R.drawable.ic_menu_check);
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
+                                Toast.makeText(context, "File not saved: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-
+                        } else {
+                            Toast.makeText(context, "File not saved", Toast.LENGTH_SHORT).show();
+                        }
+                        startSound();
+                    } else {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                            // Your existing code for Android 9 or below goes here
                             startSound();
                         } else {
-
-                            FileOutputStream outputStream = null;
-
-                            File sdCard = Environment.getExternalStorageDirectory();
-
-                            File directory = new File(sdCard.getAbsolutePath() + "/Latest Quotes");
-                            directory.mkdir();
-
-                            String filename = String.format("%d.jpg", System.currentTimeMillis());
-
-                            File outFile = new File(directory, filename);
-
-                            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show();
-                            ((WallpaperViewHolder) holder).tv_save_quote.setText("Saved");
-                            ((WallpaperViewHolder) holder).iv_save_quote.setImageResource(R.drawable.ic_menu_check);
-
-
-                            try {
-                                outputStream = new FileOutputStream(outFile);
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-
-                                outputStream.flush();
-                                outputStream.close();
-
-                                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                                intent.setData(Uri.fromFile(outFile));
-                                context.sendBroadcast(intent);
-
-
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
-                            startSound();
-
+                            //show permission popup
+                            requestStoragePermission();
                         }
-                        showInterstitialAd();
-
-                    } else {
-
-                        //show permission popup
-                        requestStoragePermission();
-
                     }
-
+                    showInterstitialAd();
                 }
             });
+
 
             //When You Press copy Botton
             ((WallpaperViewHolder) holder).ll_copy_quote.setOnClickListener(new View.OnClickListener() {

@@ -1,5 +1,6 @@
 package com.ymg.beststatusandquotes.Activity;
 
+import static com.ymg.beststatusandquotes.Activity.ImagePickerActivity.PERMISSION_REQUEST_CODE;
 import static com.ymg.beststatusandquotes.Utils.Constant.ADMOB;
 import static com.ymg.beststatusandquotes.Utils.Constant.AD_STATUS_ON;
 import static com.ymg.beststatusandquotes.Utils.Constant.BANNER_HOME;
@@ -43,6 +44,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
@@ -694,86 +696,107 @@ public class MakerActivity extends AppCompatActivity {
         tvSaveImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MakerActivity.this,
-                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                tvMaker.setCursorVisible(false);
+                Bitmap bitmap = Bitmap.createBitmap(rlBackground.getWidth(), rlBackground.getHeight(),
+                        Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                rlBackground.draw(canvas);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentResolver resolver = getContentResolver();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
+                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+                    contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+                    Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
 
-                    //finalHolder.tv_quotes_watermark.setVisibility(View.VISIBLE);
-                    tvMaker.setCursorVisible(false);
-                    Bitmap bitmap = Bitmap.createBitmap(rlBackground.getWidth(), rlBackground.getHeight(),
-                            Bitmap.Config.ARGB_8888);
-                    Canvas canvas = new Canvas(bitmap);
-                    rlBackground.draw(canvas);
-
-                    OutputStream fos;
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        ContentResolver resolver = getContentResolver();
-                        ContentValues contentValues = new ContentValues();
-                        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
-                        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
-                        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
-                        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-
-                        Toast.makeText(MakerActivity.this, "File Saved", Toast.LENGTH_SHORT).show();
+                    if (imageUri != null) {
                         try {
-                            fos = resolver.openOutputStream(Objects.requireNonNull(imageUri));
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-
-                            fos.flush();
-                            fos.close();
-
-
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
+                            OutputStream fos = resolver.openOutputStream(imageUri);
+                            if (fos != null) {
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                                fos.flush();
+                                fos.close();
+                                Toast.makeText(MakerActivity.this, "File Saved", Toast.LENGTH_SHORT).show();
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
+                            Toast.makeText(MakerActivity.this, "File not saved: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     } else {
+                        Toast.makeText(MakerActivity.this, "File not saved", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    if (true) {
+                        //finalHolder.tv_quotes_watermark.setVisibility(View.VISIBLE);
+                        OutputStream fos;
 
-                        FileOutputStream outputStream = null;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            ContentResolver resolver = getContentResolver();
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, System.currentTimeMillis() + ".jpg");
+                            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+                            contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+                            Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
 
-                        File sdCard = Environment.getExternalStorageDirectory();
+                            Toast.makeText(MakerActivity.this, "File Saved", Toast.LENGTH_SHORT).show();
+                            try {
+                                fos = resolver.openOutputStream(Objects.requireNonNull(imageUri));
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
 
-                        File directory = new File(sdCard.getAbsolutePath() + "/Latest Quotes");
-                        directory.mkdir();
+                                fos.flush();
+                                fos.close();
 
-                        String filename = String.format("%d.jpg", System.currentTimeMillis());
 
-                        File outFile = new File(directory, filename);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
 
-                        Toast.makeText(MakerActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                            FileOutputStream outputStream = null;
+
+                            File sdCard = Environment.getExternalStorageDirectory();
+
+                            File directory = new File(sdCard.getAbsolutePath() + "/Latest Quotes");
+                            directory.mkdir();
+
+                            String filename = String.format("%d.jpg", System.currentTimeMillis());
+
+                            File outFile = new File(directory, filename);
+
+                            Toast.makeText(MakerActivity.this, "Saved", Toast.LENGTH_SHORT).show();
 //                        finalHolder.tv_save_quote.setText("Saved");
 //                        finalHolder.iv_save_quote.setImageResource(R.drawable.ic_menu_check);
 
 
+                            try {
+                                outputStream = new FileOutputStream(outFile);
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
 
-                        try {
-                            outputStream = new FileOutputStream(outFile);
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                                outputStream.flush();
+                                outputStream.close();
 
-                            outputStream.flush();
-                            outputStream.close();
-
-                            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                            intent.setData(Uri.fromFile(outFile));
-                            sendBroadcast(intent);
+                                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                                intent.setData(Uri.fromFile(outFile));
+                                sendBroadcast(intent);
 
 
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            tvMaker.setCursorVisible(true);
+
                         }
 
-                        tvMaker.setCursorVisible(true);
+                    } else {
+                        //show permission popup
+                        //requestStoragePermission();
 
                     }
-
-                }else{
-
-                    //show permission popup
-                    //requestStoragePermission();
-
                 }
             }
         });
